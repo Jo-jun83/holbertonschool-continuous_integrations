@@ -53,3 +53,31 @@ La durée totale du workflow est passée de 36 à 32 secondes, soit une réducti
 La construction Docker est passée de 11 à 10 secondes.
 
 La deuxième exécution montre que 9 % des étapes de construction ont bénéficié du cache. Le gain reste limité sur ce petit projet et peut varier d'une exécution à l'autre.
+
+## Analyse des vulnérabilités Docker
+
+Le pipeline CI/CD utilise **Trivy** pour analyser les images Docker et détecter les vulnérabilités de sécurité connues avant leur publication sur GitHub Container Registry (GHCR).
+
+### Politique de sécurité
+
+| Niveau de gravité | Publication |
+|---|---|
+| LOW (Faible) | Autorisée |
+| MEDIUM (Moyen) | Autorisée |
+| HIGH (Élevé) | Autorisée |
+| CRITICAL (Critique) | Bloquée |
+
+L'analyse porte sur les paquets du système d'exploitation et les dépendances de l'application.
+
+Si Trivy détecte au moins une vulnérabilité de niveau **CRITICAL**, le workflow GitHub Actions échoue (`exit-code: 1`) et l'image Docker n'est pas publiée.
+
+### Fonctionnement du pipeline
+
+1. **Construction** : l'image Docker est construite localement, sans être publiée.
+2. **Analyse** : Trivy recherche les vulnérabilités dans l'image.
+3. **Vérification** : si une vulnérabilité critique est détectée, le workflow échoue.
+4. **Publication** : si le scan réussit, l'image est publiée sur GHCR avec ses tags automatiques.
+
+### Objectif
+
+Cette vérification de sécurité empêche la publication d'une nouvelle image Docker contenant des vulnérabilités critiques détectées par Trivy.
