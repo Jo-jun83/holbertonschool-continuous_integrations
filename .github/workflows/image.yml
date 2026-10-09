@@ -1,3 +1,4 @@
+
 name: Docker Image Build and Push
 
 on:
@@ -46,19 +47,27 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            local/trivy-scan:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Diagnose Trivy download
+        run: |
+          curl -fIL --retry 3 \
+            https://github.com/aquasecurity/trivy/releases/download/v0.65.0/trivy_0.65.0_Linux-64bit.tar.gz
+
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@v0.33.1
         with:
-          image-ref: ghcr.io/jo-jun83/holbertonschool-continuous_integrations:${{ github.sha }}
+          image-ref: local/trivy-scan:latest
           format: table
           exit-code: '1'
           severity: CRITICAL
           vuln-type: os,library
+          trivy-version: v0.65.0
 
       - name: Push Docker image
         env:
