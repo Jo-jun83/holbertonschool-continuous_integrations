@@ -59,15 +59,17 @@ jobs:
           curl -fIL --retry 3 \
             https://github.com/aquasecurity/trivy/releases/download/v0.65.0/trivy_0.65.0_Linux-64bit.tar.gz
 
+
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@v0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/trivy-scan:latest
           format: table
           exit-code: '1'
           severity: CRITICAL
           vuln-type: os,library
-          trivy-version: v0.65.0
+          trivy-version: v0.74.0
+
 
       - name: Push Docker image
         env:
