@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -24,14 +26,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
-        run: |
-          docker build \
-            -t ghcr.io/jo-jun83/holbertonschool-continuous_integrations:${{ github.sha }} \
-            -t ghcr.io/jo-jun83/holbertonschool-continuous_integrations:latest \
-            .
+      - name: Generate Docker tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/jo-jun83/holbertonschool-continuous_integrations
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+            type=ref,event=tag
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Push Docker image
-        run: |
-          docker push ghcr.io/jo-jun83/holbertonschool-continuous_integrations:${{ github.sha }}
-          docker push ghcr.io/jo-jun83/holbertonschool-continuous_integrations:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
