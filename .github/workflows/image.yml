@@ -52,7 +52,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.33.0
         with:
           image-ref: ghcr.io/jo-jun83/holbertonschool-continuous_integrations:${{ github.sha }}
           format: table
